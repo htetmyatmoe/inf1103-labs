@@ -17,8 +17,8 @@ while True:
 
     inventory_count += int(user_input)
 
-    if inventory_count > 50:
-        print("Warning: Inventory count exceeds 50. Please check the stock levels.")
+    if inventory_count > 500:
+        print("Warning: Inventory count exceeds 500. Please check the stock levels.")
         failed_entries += 1
         break
 
