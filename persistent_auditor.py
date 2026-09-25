@@ -1,12 +1,9 @@
 import os
 
-FILE_NAME = "orders.txt"
+FILE_NAME = "inventory.txt"
 
 
 def load_inventory(filepath):
-    """
-    Phase A: Reads previously saved orders from file into a list.
-    """
     orders = []
     if not os.path.exists(filepath):
         return orders
@@ -18,7 +15,10 @@ def load_inventory(filepath):
                 if line:
                     parts = [p.strip() for p in line.split(",")]
                     if len(parts) == 3:
-                        orders.append((int(parts[0]), parts[1], int(parts[2])))
+                        order_id = int(parts[0])
+                        product_name = parts[1]
+                        qty = int(parts[2])
+                        orders.append((order_id, product_name, qty))
     except IOError as e:
         print(f"Error loading file: {e}")
 
@@ -26,9 +26,6 @@ def load_inventory(filepath):
 
 
 def get_valid_input():
-    """
-    Phase B: Prompts for product name (or 'quit') and a valid positive quantity.
-    """
     product_name = input("Enter Product Name (or type 'quit' to exit): ").strip()
     if product_name.lower() == "quit":
         return "quit", None
@@ -41,9 +38,6 @@ def get_valid_input():
 
 
 def process_delivery(orders_list, product_name, quantity):
-    """
-    Phase B: Increments ID, appends to the history list, and returns the new order.
-    """
     if orders_list:
         next_id = orders_list[-1][0] + 1
     else:
@@ -54,8 +48,17 @@ def process_delivery(orders_list, product_name, quantity):
     return new_order
 
 
+def save_inventory(filepath, orders_list):
+    try:
+        with open(filepath, "w") as file:
+            for order_id, product_name, qty in orders_list:
+                file.write(f"{order_id}, {product_name}, {qty}\n")
+        print(f"\nOrder successfully saved to {filepath}")
+    except IOError as e:
+        print(f"Error saving file: {e}")
+
+
 def main():
-    # 1. Load initial history
     orders = load_inventory(FILE_NAME)
 
     print("Current Orders:\n")
@@ -64,9 +67,9 @@ def main():
             print(f"{order_id}, {product}, {qty}")
     else:
         print("No prior orders found.")
+
     print()
 
-    # 2. Continuous entry loop
     while True:
         product_name, quantity = get_valid_input()
 
@@ -77,7 +80,7 @@ def main():
         print("\nNew Order Added:")
         print(f"{new_order[0]},{new_order[1]},{new_order[2]}\n")
 
-    print(f"\nSession finished. Total orders in history: {len(orders)}")
+    save_inventory(FILE_NAME, orders)
 
 
 if __name__ == "__main__":
