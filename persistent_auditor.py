@@ -26,15 +26,16 @@ def load_inventory(filepath):
 
 
 def get_valid_input():
-    product_name = input("Enter Product Name (or type 'quit' to exit): ").strip()
+    product_name = input("Enter Product Name (or 'quit' to exit): ").strip()
     if product_name.lower() == "quit":
         return "quit", None
 
-    while True:
-        qty_input = input("Enter Quantity: ").strip()
-        if qty_input.isdigit() and int(qty_input) > 0:
-            return product_name, int(qty_input)
+    qty_input = input("Enter Quantity: ").strip()
+    if not qty_input.isdigit() or int(qty_input) <= 0:
         print("Invalid quantity. Please enter a positive integer.")
+        return None, None
+
+    return product_name, int(qty_input)
 
 
 def process_delivery(orders_list, product_name, quantity):
@@ -48,27 +49,44 @@ def process_delivery(orders_list, product_name, quantity):
     return new_order
 
 
+def calculate_tax(amount):
+    return amount * 0.10
+
+
 def save_inventory(filepath, orders_list):
     try:
         with open(filepath, "w") as file:
             for order_id, product_name, qty in orders_list:
                 file.write(f"{order_id}, {product_name}, {qty}\n")
-        print(f"\nOrder successfully saved to {filepath}")
+        print(f"Order successfully saved to {filepath}\n")
     except IOError as e:
         print(f"Error saving file: {e}")
 
 
+def generate_report(orders_list, failed_attempts):
+    total_transactions = len(orders_list)
+    total_units = sum(qty for _, _, qty in orders_list)
+    total_tax = sum(calculate_tax(qty) for _, _, qty in orders_list)
+
+    print("=== Audit Report ===")
+    print(f"Total Transactions Recorded: {total_transactions}")
+    print(f"Total Units Processed: {total_units}")
+    print(f"Total Tax (10% on units): {total_tax:.2f}")
+    print(f"Number of Failed/Rejected Entries: {failed_attempts}")
+
+
 def main():
     orders = load_inventory(FILE_NAME)
+    failed_attempts = 0
 
-    print("Current Orders:\n")
+    print("Current Orders:")
     if orders:
         for order_id, product, qty in orders:
             print(f"{order_id}, {product}, {qty}")
     else:
         print("No prior orders found.")
 
-    print()
+    print("---------------------------------")
 
     while True:
         product_name, quantity = get_valid_input()
@@ -76,11 +94,18 @@ def main():
         if product_name == "quit":
             break
 
+        if product_name is None or quantity is None:
+            failed_attempts += 1
+            continue
+
         new_order = process_delivery(orders, product_name, quantity)
+        tax = calculate_tax(quantity)
+
         print("\nNew Order Added:")
-        print(f"{new_order[0]},{new_order[1]},{new_order[2]}\n")
+        print(f"{new_order[0]}, {new_order[1]}, {new_order[2]} (Tax: {tax:.2f})\n")
 
     save_inventory(FILE_NAME, orders)
+    generate_report(orders, failed_attempts)
 
 
 if __name__ == "__main__":
