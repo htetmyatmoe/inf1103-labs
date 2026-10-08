@@ -1,3 +1,26 @@
+import json
+import os
+
+FILE_NAME = "inventory.json"
+
+
+def load_inventory():
+    """Check whether inventory.json exists. Load if found, otherwise start empty."""
+    if os.path.exists(FILE_NAME):
+        print(f"{FILE_NAME} found.")
+        try:
+            with open(FILE_NAME, "r") as f:
+                data = json.load(f)
+                print("Inventory loaded successfully.")
+                return data
+        except (json.JSONDecodeError, IOError):
+            print("Error reading file. Starting with an empty inventory.")
+            return []
+    else:
+        print(f"{FILE_NAME} not found. Starting with an empty inventory.")
+        return []
+
+
 def display_all(inventory):
     print("\nCurrent Inventory")
     if not inventory:
@@ -13,8 +36,12 @@ def add_product(inventory):
     print("\nAdd New Product")
     p_id = input("Product ID: ").strip()
     name = input("Product Name: ").strip()
-    price = float(input("Price: "))
-    stock = int(input("Stock Quantity: "))
+    try:
+        price = float(input("Price: "))
+        stock = int(input("Stock Quantity: "))
+    except ValueError:
+        print("Invalid input.")
+        return
 
     product = {"id": p_id, "name": name, "price": price, "stock": stock}
     inventory.append(product)
@@ -22,17 +49,8 @@ def add_product(inventory):
 
 
 def main():
-    inventory = [
-        {"id": "P001", "name": "Laptop", "price": 1200.00, "stock": 15},
-        {"id": "P002", "name": "Mouse", "price": 25.50, "stock": 40},
-        {"id": "P003", "name": "Keyboard", "price": 45.00, "stock": 25},
-    ]
-
     print("INVENTORY MANAGEMENT SYSTEM")
-    display_all(inventory)
-
-    # Test adding a product
-    add_product(inventory)
+    inventory = load_inventory()
     display_all(inventory)
 
 
