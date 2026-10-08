@@ -5,6 +5,7 @@ FILE_NAME = "inventory.json"
 
 
 def load_inventory():
+    """Check whether inventory.json exists. Load if found, otherwise start empty."""
     if os.path.exists(FILE_NAME):
         print(f"{FILE_NAME} found.")
         try:
@@ -21,6 +22,7 @@ def load_inventory():
 
 
 def save_inventory(inventory):
+    """Save the current inventory to inventory.json."""
     print("Saving inventory...")
     with open(FILE_NAME, "w") as f:
         json.dump(inventory, f, indent=4)
@@ -28,6 +30,7 @@ def save_inventory(inventory):
 
 
 def display_all(inventory):
+    """Display all products in inventory."""
     print("\nCurrent Inventory")
     if not inventory:
         print("No products available.")
@@ -39,8 +42,16 @@ def display_all(inventory):
 
 
 def add_product(inventory):
+    """Prompt user and append a new product if the ID is unique."""
     print("\nAdd New Product")
     p_id = input("Product ID: ").strip()
+
+    # Check if product ID already exists
+    for item in inventory:
+        if item["id"].lower() == p_id.lower():
+            print(f"Error: Product ID '{p_id}' already exists! Cannot add duplicate product.")
+            return
+
     name = input("Product Name: ").strip()
     try:
         price = float(input("Price: "))
@@ -55,6 +66,7 @@ def add_product(inventory):
 
 
 def update_stock(inventory):
+    """Update stock quantity for a given product ID."""
     print("\nUpdate Stock")
     p_id = input("Enter Product ID: ").strip()
 
@@ -75,6 +87,7 @@ def update_stock(inventory):
 
 
 def search_product(inventory):
+    """Search for a product by ID."""
     print("\nSearch Product")
     p_id = input("Enter Product ID: ").strip()
 
