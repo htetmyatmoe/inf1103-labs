@@ -10,5 +10,23 @@
         "name": "Phones",
         "price": 300.0,
         "stock": 40
+    },
+    {
+        "id": "P004",
+        "name": "Mouse",
+        "price": 20.0,
+        "stock": 30
+    },
+    {
+        "id": "P003",
+        "name": "Charger",
+        "price": 10.0,
+        "stock": 30
+    },
+    {
+        "id": "P003",
+        "name": "Happy",
+        "price": 30.0,
+        "stock": 2
     }
 ]
