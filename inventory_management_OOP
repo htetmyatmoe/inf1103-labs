@@ -92,30 +92,61 @@ def main():
             inventory.display_all()
 
         elif choice == "2":
+            print("(Type 'exit' at any prompt to cancel)")
+            
             pid = input("Enter Product ID: ").strip()
+            if pid.lower() == "exit":
+                print("Cancelled adding product.")
+                continue
+
             name = input("Enter Product Name: ").strip()
+            if name.lower() == "exit":
+                print("Cancelled adding product.")
+                continue
+
             try:
-                price = float(input("Enter Price: "))
-                stock = int(input("Enter Stock Quantity: "))
+                price_input = input("Enter Price: ").strip()
+                if price_input.lower() == "exit":
+                    print("Cancelled adding product.")
+                    continue
+                price = float(price_input)
+
+                stock_input = input("Enter Stock Quantity: ").strip()
+                if stock_input.lower() == "exit":
+                    print("Cancelled adding product.")
+                    continue
+                stock = int(stock_input)
+
                 new_product = Product(pid, name, price, stock)
                 inventory.add_product(new_product)
                 print("Product added successfully!")
             except ValueError:
-                print("Invalid input for price or stock. Please enter numbers.")
+                print("Invalid input for price or stock. Product creation cancelled.")
 
         elif choice == "3":
+            print("(Type 'exit' at any prompt to cancel)")
+            
             pid = input("Enter Product ID to update stock: ").strip()
+            if pid.lower() == "exit":
+                print("Cancelled stock update.")
+                continue
+
             product = inventory.search_product(pid)
             if product:
                 try:
-                    qty = int(input("Enter quantity to add/subtract (e.g., 10 or -5): "))
+                    qty_input = input("Enter quantity to add/subtract (e.g., 10 or -5): ").strip()
+                    if qty_input.lower() == "exit":
+                        print("Cancelled stock update.")
+                        continue
+                    
+                    qty = int(qty_input)
                     if product.update_stock(qty):
                         print("Stock updated successfully.")
                 except ValueError:
-                    print("Invalid quantity format.")
+                    print("Invalid quantity format. Update cancelled.")
             else:
                 print("Product not found.")
-
+                
         elif choice == "4":
             pid = input("Enter Product ID to search: ").strip()
             product = inventory.search_product(pid)
