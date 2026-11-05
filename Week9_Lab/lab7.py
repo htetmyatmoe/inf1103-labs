@@ -1,7 +1,8 @@
 import json
 import os
+from abc import ABC, abstractmethod
 
-class Product:
+class Product(ABC):
     def __init__(self, id, name, price, stock):
         self._product_id = id
         self.name = name
@@ -28,6 +29,11 @@ class Product:
             "stock": self._stock
         }
 
+    @abstractmethod
+    def get_fulfilment_info(self):
+        """Every product type must explain how it reaches the customer."""
+        pass
+
 
 class PhysicalProduct(Product):
     def __init__(self, id, name, price, stock, weight):
@@ -38,6 +44,15 @@ class PhysicalProduct(Product):
         super().display_information()
         print(f"    Weight: {self._weight} kg")
 
+    def get_fulfilment_info(self):
+        return f"{self.name} requires physical shipping ({self._weight} kg)."
+
+    def to_dict(self):
+        data = super().to_dict()      # id, name, price, stock from Product
+        data["type"] = "physical"     # tells load_from_file which class to rebuild
+        data["weight"] = self._weight
+        return data
+
 
 class DigitalProduct(Product):
     def __init__(self, id, name, price, stock, download_size):
@@ -47,6 +62,15 @@ class DigitalProduct(Product):
     def display_information(self):
         super().display_information()
         print(f"    Download size: {self._download_size} MB")
+
+    def get_fulfilment_info(self):
+        return f"{self.name} is delivered digitally via download link ({self._download_size} MB)."
+
+    def to_dict(self):
+        data = super().to_dict()
+        data["type"] = "digital"
+        data["download_size"] = self._download_size
+        return data
 
 
 class Inventory:
@@ -83,12 +107,19 @@ class Inventory:
                 data = json.load(f)
                 self._products = []
                 for item in data:
-                    product = Product(
-                        item["id"],
-                        item["name"],
-                        item["price"],
-                        item["stock"]
-                    )
+                    # Use the saved "type" to rebuild the right subclass.
+                    # Old Lab 6 entries have no type, so treat them as physical.
+                    product_type = item.get("type", "physical")
+                    if product_type == "digital":
+                        product = DigitalProduct(
+                            item["id"], item["name"], item["price"], item["stock"],
+                            item.get("download_size", 0.0)
+                        )
+                    else:
+                        product = PhysicalProduct(
+                            item["id"], item["name"], item["price"], item["stock"],
+                            item.get("weight", 0.0)
+                        )
                     self._products.append(product)
                 print("Inventory loaded successfully.")
             except json.JSONDecodeError:
@@ -114,7 +145,16 @@ def main():
 
         elif choice == "2":
             print("(Type 'exit' at any prompt to cancel)")
-            
+
+            product_type = input("Product type - (P)hysical or (D)igital: ").strip().lower()
+            if product_type == "exit":
+                print("Cancelled adding product.")
+                continue
+            if product_type not in ("p", "d", "physical", "digital"):
+                print("Invalid product type. Product creation cancelled.")
+                continue
+            is_physical = product_type in ("p", "physical")
+
             pid = input("Enter Product ID: ").strip()
             if pid.lower() == "exit":
                 print("Cancelled adding product.")
@@ -138,11 +178,24 @@ def main():
                     continue
                 stock = int(stock_input)
 
-                new_product = Product(pid, name, price, stock)
+                if is_physical:
+                    extra_input = input("Enter Weight (kg): ").strip()
+                else:
+                    extra_input = input("Enter Download Size (MB): ").strip()
+                if extra_input.lower() == "exit":
+                    print("Cancelled adding product.")
+                    continue
+                extra = float(extra_input)
+
+                if is_physical:
+                    new_product = PhysicalProduct(pid, name, price, stock, extra)
+                else:
+                    new_product = DigitalProduct(pid, name, price, stock, extra)
                 inventory.add_product(new_product)
                 print("Product added successfully!")
+                print(new_product.get_fulfilment_info())
             except ValueError:
-                print("Invalid input for price or stock. Product creation cancelled.")
+                print("Invalid number entered. Product creation cancelled.")
 
         elif choice == "3":
             print("(Type 'exit' at any prompt to cancel)")
