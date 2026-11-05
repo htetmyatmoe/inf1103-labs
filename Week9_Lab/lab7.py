@@ -10,7 +10,6 @@ class Product(ABC):
         self._stock = int(stock)
 
     def update_stock(self, quantity: int):
-        """Updates stock safely with internal control."""
         new_stock = self._stock + quantity
         if new_stock < 0:
             print("Error: Stock cannot be negative!")
@@ -31,11 +30,20 @@ class Product(ABC):
 
     @abstractmethod
     def get_fulfilment_info(self):
-        """Every product type must explain how it reaches the customer."""
         pass
 
 
-class PhysicalProduct(Product):
+class CanBeShipped(ABC):
+
+    @abstractmethod
+    def calculate_shipping_cost(self):
+        pass
+
+
+class PhysicalProduct(Product, CanBeShipped):
+    BASE_SHIPPING = 5.00   # flat fee in dollars
+    RATE_PER_KG = 2.00     # extra dollars per kilogram
+
     def __init__(self, id, name, price, stock, weight):
         super().__init__(id, name, price, stock)
         self._weight = float(weight)  # in kilograms
@@ -46,6 +54,9 @@ class PhysicalProduct(Product):
 
     def get_fulfilment_info(self):
         return f"{self.name} requires physical shipping ({self._weight} kg)."
+
+    def calculate_shipping_cost(self):
+        return self.BASE_SHIPPING + self._weight * self.RATE_PER_KG
 
     def to_dict(self):
         data = super().to_dict()      # id, name, price, stock from Product
@@ -107,8 +118,6 @@ class Inventory:
                 data = json.load(f)
                 self._products = []
                 for item in data:
-                    # Use the saved "type" to rebuild the right subclass.
-                    # Old Lab 6 entries have no type, so treat them as physical.
                     product_type = item.get("type", "physical")
                     if product_type == "digital":
                         product = DigitalProduct(
